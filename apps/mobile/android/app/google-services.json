@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "326588531671",
+    "project_id": "closio-a8b16",
+    "storage_bucket": "closio-a8b16.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326588531671:android:7667cb95bc4f4404218192",
+        "android_client_info": {
+          "package_name": "com.example.closio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgSdS3VRbPgrOgkQ-mXTPR1BWNJxVM7_4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

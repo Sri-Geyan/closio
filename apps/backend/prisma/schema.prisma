@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String             @id @default(uuid())
+  supabaseId        String             @unique // ID from Supabase Auth
+  username          String             @unique
+  avatarUrl         String?
+  fcmToken          String?
+  upiId             String?
+  bio               String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+
+  // Security (v2)
+  totpSecret        String?
+  isTotpEnabled     Boolean            @default(false)
+  loginActivities   LoginActivity[]
+
+  hubMemberships    HubMember[]
+  eventAttendances  EventAttendance[]
+  messages          Message[]
+  splitParticipations SplitParticipant[]
+  pollVotes         PollVote[]
+  locationShares    LocationShare[]
+  jukeboxSessions   JukeboxSession[]
+  jukeboxTracks     JukeboxTrack[]
+
+  // Gaming Accounts
+  gamingSteam       String?
+  gamingDiscord     String?
+  gamingXbox        String?
+  gamingPsn         String?
+  gamingEpic        String?
+  gamingRiot        String?
+  gamingPrivacy     String   @default("ALL") // ALL, HUBS, NOBODY
+  gamingAppearOffline Boolean @default(false)
+}
+
+model Hub {
+  id          String      @id @default(uuid())
+  name        String
+  avatarUrl   String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  members     HubMember[]
+  events      Event[]
+  messages    Message[]
+  locationShares LocationShare[]
+  jukeboxSession JukeboxSession?
+  deepLinkInteractions DeepLinkInteraction[]
+  encryptionKey HubEncryptionKey?
+}
+
+model HubEncryptionKey {
+  id        String   @id @default(uuid())
+  hubId     String   @unique
+  key       String   // Encrypted symmetric key for this hub
+  rotatedAt DateTime @default(now())
+  hub       Hub      @relation(fields: [hubId], references: [id], onDelete: Cascade)
+}
+
+model LoginActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  device    String?
+  location  String?
+  ipAddress String?
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model HubMember {
+  id        String   @id @default(uuid())
+  hubId     String
+  userId    String
+  role      String   @default("Member") // Admin, Member
+  joinedAt  DateTime @default(now())
+  hub       Hub      @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([hubId, userId])
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  hubId       String
+  title       String
+  description String?
+  date        String   // YYYY-MM-DD
+  time        String?  // HH:MM
+  location    String?
+  type        String   // Hangout, Food, Movie, Sport
+  sportType   String?  // e.g. Running, Cricket
+  sportDetails Json?   // extra details like surface type, lap count
+  lobbyLink   String?  // deep link for game night lobby
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  hub         Hub      @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  attendances EventAttendance[]
+  splits      Split[]
+}
+
+model EventAttendance {
+  id        String   @id @default(uuid())
+  eventId   String
+  userId    String
+  status    String   // Going, Maybe, Not Going
+  updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  hubId     String
+  senderId  String
+  text      String?
+  mediaUrl  String?
+  type      String   @default("TEXT") // TEXT, IMAGE, DOCUMENT, LOCATION, POLL, SPORT_EVENT
+  vanishTtl Int?     // seconds
+  createdAt DateTime @default(now())
+  hub       Hub      @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  poll      Poll?
+}
+
+model Split {
+  id          String             @id @default(uuid())
+  eventId     String
+  totalAmount Float
+  type        String             // Equal, Custom
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  event       Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participants SplitParticipant[]
+}
+
+model SplitParticipant {
+  id         String   @id @default(uuid())
+  splitId    String
+  userId     String
+  amountOwed Float
+  isPaid     Boolean  @default(false)
+  split      Split    @relation(fields: [splitId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([splitId, userId])
+}
+
+model Poll {
+  id          String       @id @default(uuid())
+  messageId   String       @unique
+  question    String
+  type        String       // SINGLE, MULTIPLE, DATE
+  expiryDate  DateTime?
+  isAnonymous Boolean      @default(false)
+  isClosed    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  message     Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  options     PollOption[]
+}
+
+model PollOption {
+  id        String     @id @default(uuid())
+  pollId    String
+  text      String
+  dateValue DateTime?
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes     PollVote[]
+}
+
+model PollVote {
+  id        String     @id @default(uuid())
+  optionId  String
+  userId    String
+  createdAt DateTime   @default(now())
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+}
+
+model LocationShare {
+  id        String   @id @default(uuid())
+  hubId     String
+  userId    String
+  latitude  Float
+  longitude Float
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hub       Hub      @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JukeboxSession {
+  id        String   @id @default(uuid())
+  hubId     String   @unique
+  hostId    String
+  name      String
+  mood      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hub       Hub      @relation(fields: [hubId], references: [id], onDelete: Cascade)
+  host      User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  tracks    JukeboxTrack[]
+}
+
+model JukeboxTrack {
+  id        String   @id @default(uuid())
+  sessionId String
+  addedById String
+  title     String
+  artist    String
+  albumArt  String?
+  spotifyUrl String? // Used for deep linking
+  votes     Int      @default(0)
+  isPlayed  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  session   JukeboxSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  addedBy   User           @relation(fields: [addedById], references: [id], onDelete: Cascade)
+}
+
+model DeepLinkInteraction {
+  id        String   @id @default(uuid())
+  hubId     String
+  linkType  String
+  taps      Int      @default(0)
+  updatedAt DateTime @updatedAt
+  hub       Hub      @relation(fields: [hubId], references: [id], onDelete: Cascade)
+
+  @@unique([hubId, linkType])
+}
