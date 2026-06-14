@@ -113,6 +113,27 @@ class ApiService {
     }
   }
 
+  static Future<String> getHubInviteCode(String hubId) async {
+    final headers = await _getHeaders();
+    final response = await http.get(Uri.parse('$backendUrl/hubs/$hubId/invite'), headers: headers);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['inviteCode'];
+    } else {
+      throw Exception('Failed to get invite code');
+    }
+  }
+
+  static Future<dynamic> joinHubByInviteCode(String inviteCode) async {
+    final headers = await _getHeaders();
+    final response = await http.post(Uri.parse('$backendUrl/hubs/join/$inviteCode'), headers: headers);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to join hub via invite code');
+    }
+  }
+
   static Future<List<dynamic>> getHubMessages(String hubId) async {
     final headers = await _getHeaders();
     final response = await http.get(Uri.parse('$backendUrl/hubs/$hubId/messages'), headers: headers);
@@ -312,13 +333,15 @@ class ApiService {
     }
   }
 
+  // --- AI & Events ---
   static Future<Map<String, dynamic>> planEvent(String eventType, int groupSize, Map<String, dynamic> location, String budget) async {
+    final headers = await _getHeaders();
     final response = await http.post(
       Uri.parse('$backendUrl/ai/plan-event'),
-      headers: await _getHeaders(),
+      headers: headers,
       body: jsonEncode({
-        'event_type': eventType,
-        'group_size': groupSize,
+        'eventType': eventType,
+        'groupSize': groupSize,
         'location': location,
         'budget': budget,
       }),
@@ -326,7 +349,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Failed to generate plan');
+      throw Exception('Failed to plan event: ${response.body}');
     }
   }
 
@@ -346,5 +369,33 @@ class ApiService {
     } else {
       throw Exception('Failed to optimize sport');
     }
+  }
+
+  // --- Locations ---
+  static Future<List<dynamic>> getActiveLocations() async {
+    final headers = await _getHeaders();
+    final response = await http.get(Uri.parse('$backendUrl/locations'), headers: headers);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    return [];
+  }
+
+  static Future<void> shareLocationAll(double lat, double lng, {int durationMinutes = 60}) async {
+    final headers = await _getHeaders();
+    await http.post(
+      Uri.parse('$backendUrl/locations/share-all'),
+      headers: headers,
+      body: jsonEncode({
+        'latitude': lat,
+        'longitude': lng,
+        'durationMinutes': durationMinutes
+      })
+    );
+  }
+
+  static Future<void> stopSharingLocationAll() async {
+    final headers = await _getHeaders();
+    await http.delete(Uri.parse('$backendUrl/locations/share-all'), headers: headers);
   }
 }

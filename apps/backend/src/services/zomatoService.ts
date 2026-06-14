@@ -29,13 +29,27 @@ class ZomatoService {
     return client;
   }
 
+  private parseToolResult(result: any): any {
+    if (result && result.content && Array.isArray(result.content) && result.content.length > 0) {
+      const textContent = result.content.find((c: any) => c.type === 'text');
+      if (textContent && textContent.text) {
+        try {
+          return JSON.parse(textContent.text);
+        } catch (e) {
+          return { text: textContent.text };
+        }
+      }
+    }
+    return result;
+  }
+
   async bindNumber(userId: string, phoneNumber: string) {
     const client = await this.getOrCreateClient(userId);
     const result = await client.callTool({
       name: 'bind_user_number',
       arguments: { phone_number: phoneNumber }
     });
-    return result;
+    return this.parseToolResult(result);
   }
 
   async verifyCode(userId: string, code: string, stateId: string) {
@@ -44,7 +58,7 @@ class ZomatoService {
       name: 'bind_user_number_verify_code',
       arguments: { code, state_id: stateId }
     });
-    return result;
+    return this.parseToolResult(result);
   }
 
   async getRestaurants(userId: string, keyword: string, lat: number, lng: number) {
@@ -53,7 +67,7 @@ class ZomatoService {
       name: 'get_restaurants_for_keyword',
       arguments: { keyword, lat, lng }
     });
-    return result;
+    return this.parseToolResult(result);
   }
 
   async getMenu(userId: string, resId: number) {
@@ -62,7 +76,7 @@ class ZomatoService {
       name: 'get_restaurant_menu_by_categories',
       arguments: { res_id: resId }
     });
-    return result;
+    return this.parseToolResult(result);
   }
 
   async createCart(userId: string, resId: number, items: any[], addressId: string, paymentType: string) {
@@ -71,7 +85,7 @@ class ZomatoService {
       name: 'create_cart',
       arguments: { res_id: resId, items, address_id: addressId, payment_type: paymentType }
     });
-    return result;
+    return this.parseToolResult(result);
   }
 
   async checkoutCart(userId: string, cartId: string) {
@@ -80,7 +94,7 @@ class ZomatoService {
       name: 'checkout_cart',
       arguments: { cart_id: cartId }
     });
-    return result;
+    return this.parseToolResult(result);
   }
 }
 

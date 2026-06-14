@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
 import '../services/weather_service.dart';
+import '../providers/app_state_provider.dart';
 import 'sport_setup/sport_type_selector_screen.dart';
 
 class EventCreationScreen extends StatefulWidget {
@@ -19,6 +21,7 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
   String _selectedType = 'Hangout';
   final List<String> _types = ['Hangout', 'Food', 'Movie', 'Sport', 'Game Night'];
   final _lobbyLinkController = TextEditingController();
+  TimeOfDay? _selectedTime;
 
   List<dynamic> _hubs = [];
   String? _selectedHubId;
@@ -68,6 +71,7 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
         'title': title,
         'hubId': _selectedHubId,
         'date': widget.selectedDate.toIso8601String().split('T')[0],
+        'time': _selectedTime != null ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}' : null,
         'type': 'Sport',
         'rsvpStatus': _selectedRsvp,
       })));
@@ -80,12 +84,16 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
         'title': title,
         'hubId': _selectedHubId,
         'date': widget.selectedDate.toIso8601String().split('T')[0],
+        'time': _selectedTime != null ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}' : null,
         'location': _locationController.text.trim(),
         'type': _selectedType,
         'lobbyLink': _selectedType == 'Game Night' ? _lobbyLinkController.text.trim() : null,
         'rsvpStatus': _selectedRsvp,
       });
       if (mounted) {
+        // Force refresh the hub's events in AppStateProvider so the Calendar tab updates
+        context.read<AppStateProvider>().fetchEvents(_selectedHubId!, forceRefresh: true);
+        
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Event Created!')),
@@ -159,7 +167,26 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Date: ${widget.selectedDate.toString().split(' ')[0]}', style: Theme.of(context).textTheme.bodyLarge),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Date: ${widget.selectedDate.toString().split(' ')[0]}', style: Theme.of(context).textTheme.bodyLarge),
+                      ),
+                      TextButton.icon(
+                        onPressed: () async {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
+                          if (time != null && mounted) {
+                            setState(() => _selectedTime = time);
+                          }
+                        },
+                        icon: const Icon(Icons.access_time),
+                        label: Text(_selectedTime != null ? _selectedTime!.format(context) : 'Add Time'),
+                      ),
+                    ],
+                  ),
                   if (_timingSuggestion != null) ...[
                     const SizedBox(height: 8),
                     Container(

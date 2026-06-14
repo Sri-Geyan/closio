@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:app_links/app_links.dart';
 import '../theme.dart';
+import '../services/api_service.dart';
 import 'home_screen.dart';
 import 'hub_screen.dart';
 import 'context_nodes_screen.dart';
@@ -16,6 +19,60 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 1;
   final PageController _pageController = PageController(initialPage: 1);
+  late AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  Future<void> _initDeepLinks() async {
+    _appLinks = AppLinks();
+
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
+      _handleDeepLink(uri);
+    });
+    
+    try {
+      final initialUri = await _appLinks.getInitialLink();
+      if (initialUri != null) {
+        _handleDeepLink(initialUri);
+      }
+    } catch (e) {
+      debugPrint('Failed to handle initial link: $e');
+    }
+  }
+
+  Future<void> _handleDeepLink(Uri uri) async {
+    if (uri.scheme == 'closio' && uri.host == 'hub' && uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'invite') {
+      final inviteCode = uri.pathSegments.length > 1 ? uri.pathSegments[1] : null;
+      if (inviteCode != null) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (c) => const Center(child: CircularProgressIndicator()),
+        );
+        try {
+          final result = await ApiService.joinHubByInviteCode(inviteCode);
+          if (mounted) {
+            Navigator.pop(context); // pop loading
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'] ?? 'Joined hub successfully!')));
+            setState(() {
+              _currentIndex = 1;
+            });
+            _pageController.animateToPage(1, duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic);
+          }
+        } catch (e) {
+          if (mounted) {
+            Navigator.pop(context); // pop loading
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to join hub: $e')));
+          }
+        }
+      }
+    }
+  }
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -26,6 +83,7 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   void dispose() {
+    _linkSubscription?.cancel();
     _pageController.dispose();
     super.dispose();
   }

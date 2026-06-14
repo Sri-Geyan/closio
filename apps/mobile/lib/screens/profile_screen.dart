@@ -228,9 +228,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
 
                         if (_gamingStats != null || _gamingPresence != null)
-                          StaggeredGridTile.count(
+                          StaggeredGridTile.fit(
                             crossAxisCellCount: 4,
-                            mainAxisCellCount: _gamingStats != null && _gamingStats!.isNotEmpty ? 2 : 1,
                             child: GamingStatsCard(
                               stats: _gamingStats,
                               presence: _gamingPresence,

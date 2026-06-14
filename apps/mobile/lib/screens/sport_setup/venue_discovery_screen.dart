@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme.dart';
 import '../../services/places_service.dart';
 import '../../services/api_service.dart';
+import '../../providers/app_state_provider.dart';
 
 class VenueDiscoveryScreen extends StatefulWidget {
   final Map<String, dynamic> eventData;
@@ -41,8 +43,9 @@ class _VenueDiscoveryScreenState extends State<VenueDiscoveryScreen> {
     try {
       await ApiService.createEvent(finalData);
       if (mounted) {
-        Navigator.popUntil(context, (route) => route.isFirst);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${widget.eventData['sportType']} Event Created!')));
+        context.read<AppStateProvider>().fetchEvents(widget.eventData['hubId'], forceRefresh: true);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sport Event Created!')));
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       if (mounted) {

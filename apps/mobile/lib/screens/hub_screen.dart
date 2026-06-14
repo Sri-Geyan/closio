@@ -186,10 +186,13 @@ class _HubScreenState extends State<HubScreen> {
             ),
 
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: _showCreateHubDialog,
-            backgroundColor: ClosioTheme.primaryColor,
-            child: const Icon(Icons.add, color: Colors.white),
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.only(bottom: 90.0),
+            child: FloatingActionButton(
+              onPressed: _showCreateHubDialog,
+              backgroundColor: ClosioTheme.primaryColor,
+              child: const Icon(Icons.add, color: ClosioTheme.onPrimaryColor),
+            ),
           ),
           body: isTablet
               ? Row(

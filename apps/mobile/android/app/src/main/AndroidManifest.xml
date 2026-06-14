@@ -16,7 +16,7 @@
         <package android:name="com.google.android.apps.healthdata" />
     </queries>
     <application
-        android:label="closio"
+        android:label="Closio"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -41,6 +41,13 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+            <!-- Deep linking intent filter for 'closio://' scheme -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="closio" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

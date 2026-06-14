@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
 
@@ -114,6 +115,23 @@ class _HubSettingsScreenState extends State<HubSettingsScreen> {
     );
   }
 
+  Future<void> _shareInviteLink() async {
+    setState(() => _isLoading = true);
+    try {
+      final code = await ApiService.getHubInviteCode(widget.hubId);
+      setState(() => _isLoading = false);
+      final link = 'closio://hub/invite/$code';
+      if (mounted) {
+        Share.share('Join my hub on Closio: $link');
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error getting invite link: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,6 +141,10 @@ class _HubSettingsScreenState extends State<HubSettingsScreen> {
         elevation: 0,
         title: const Text('Hub Settings'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.share, color: ClosioTheme.primaryColor),
+            onPressed: _shareInviteLink,
+          ),
           IconButton(
             icon: const Icon(Icons.person_add, color: ClosioTheme.primaryColor),
             onPressed: _addMember,

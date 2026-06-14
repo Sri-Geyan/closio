@@ -17,6 +17,7 @@ import jukeboxRouter from './routes/jukebox';
 import aiRouter from './routes/ai';
 import gamingRouter from './routes/gaming';
 import zomatoRouter from './routes/zomato';
+import locationsRouter from './routes/locations';
 
 dotenv.config();
 
@@ -225,6 +226,7 @@ app.use('/jukebox', jukeboxRouter);
 app.use('/ai', aiRouter);
 app.use('/gaming', gamingRouter);
 app.use('/zomato', zomatoRouter);
+app.use('/locations', locationsRouter);
 
 // Realtime Chat & Attendance WebSockets
 io.on('connection', (socket) => {

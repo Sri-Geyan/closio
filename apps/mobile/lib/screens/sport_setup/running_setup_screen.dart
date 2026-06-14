@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import '../../theme.dart';
 import '../../services/api_service.dart';
+import '../../providers/app_state_provider.dart';
 import '../../services/weather_service.dart';
 import '../../services/places_service.dart';
 
@@ -113,9 +115,9 @@ class _RunningSetupScreenState extends State<RunningSetupScreen> {
     try {
       await ApiService.createEvent(finalData);
       if (mounted) {
-        // Pop all the way back to hub calendar
-        Navigator.popUntil(context, (route) => route.isFirst);
+        context.read<AppStateProvider>().fetchEvents(widget.eventData['hubId'], forceRefresh: true);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Running Event Created!')));
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       if (mounted) {

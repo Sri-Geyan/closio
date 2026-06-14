@@ -49,6 +49,7 @@ model Hub {
   id          String      @id @default(uuid())
   name        String
   avatarUrl   String?
+  inviteCode  String?     @unique
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   members     HubMember[]
