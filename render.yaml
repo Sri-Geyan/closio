@@ -35,10 +35,7 @@ services:
       - key: GOOGLE_APPLICATION_CREDENTIALS
         value: "/etc/secrets/serviceAccountKey.json"
       - fromGroup: closio-shared-env
-    secretFiles:
-      - name: serviceAccountKey.json
-        file: /etc/secrets/serviceAccountKey.json
-        content: '{ "message": "REPLACE ME WITH YOUR FIREBASE JSON IN RENDER DASHBOARD" }'
+
 
   - type: web
     name: closio-ai-layer
