@@ -24,12 +24,8 @@ RUN npm run build
 WORKDIR /app
 COPY apps/ai_layer/ ./ai_layer/
 
-# Copy start script
-COPY start.sh .
-RUN chmod +x start.sh
-
-# The port Koyeb expects (we'll expose 3000 by default, but Koyeb can inject PORT)
+# The port expected by Render/Koyeb
 ENV PORT=3000
 EXPOSE $PORT
 
-CMD ["./start.sh"]
+CMD bash -c "cd /app/ai_layer && uvicorn main:app --host 127.0.0.1 --port 8001 & cd /app/backend && export AI_LAYER_URL='http://127.0.0.1:8001' && npm start"
