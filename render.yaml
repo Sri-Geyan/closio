@@ -1,6 +1,6 @@
 version: "1"
 
-envGroups:
+envVarGroups:
   - name: closio-shared-env
     envVars:
       - key: REDIS_URL
