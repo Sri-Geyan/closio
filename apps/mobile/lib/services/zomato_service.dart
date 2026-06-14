@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'api_service.dart';
 
 class ZomatoService {
-  final String baseUrl = "http://localhost:3000"; // Or your backend URL
+  String get baseUrl => ApiService.backendUrl;
 
   Future<Map<String, String>> _getHeaders() async {
     final session = Supabase.instance.client.auth.currentSession;

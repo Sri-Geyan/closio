@@ -1,0 +1,50 @@
+version: "1"
+
+envGroups:
+  - name: closio-shared-env
+    envVars:
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+services:
+  - type: web
+    name: closio-backend
+    env: node
+    rootDir: apps/backend
+    buildCommand: npm install && npm run prisma:generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: DISCORD_REDIRECT_URI
+        sync: false
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: "/etc/secrets/serviceAccountKey.json"
+      - fromGroup: closio-shared-env
+    secretFiles:
+      - name: serviceAccountKey.json
+        file: /etc/secrets/serviceAccountKey.json
+        content: '{ "message": "REPLACE ME WITH YOUR FIREBASE JSON IN RENDER DASHBOARD" }'
+
+  - type: web
+    name: closio-ai-layer
+    env: python
+    rootDir: apps/ai_layer
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - fromGroup: closio-shared-env

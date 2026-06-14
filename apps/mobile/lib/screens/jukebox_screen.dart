@@ -50,8 +50,8 @@ class _JukeboxScreenState extends State<JukeboxScreen> {
   }
 
   void _initSocket() {
-    // Note: Assuming backend runs on 10.0.2.2:3000 locally
-    _socket = IO.io('http://10.0.2.2:3000', <String, dynamic>{
+    // Note: Use backendUrl for dynamic environment support
+    _socket = IO.io(ApiService.backendUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
     });
