@@ -20,6 +20,23 @@ class RedisClient:
         except Exception as e:
             print(f"Error publishing to redis stream: {e}")
 
+    def get(self, key):
+        if not self.client:
+            return None
+        try:
+            return self.client.get(key)
+        except Exception as e:
+            print(f"Error getting from redis: {e}")
+            return None
+
+    def setex(self, key, time, value):
+        if not self.client:
+            return
+        try:
+            self.client.setex(key, time, value)
+        except Exception as e:
+            print(f"Error setting in redis: {e}")
+
     def listen_streams(self, streams, callback):
         """
         Polls from multiple streams and calls callback(stream_name, payload)
