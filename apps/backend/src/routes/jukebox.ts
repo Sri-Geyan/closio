@@ -113,7 +113,7 @@ router.get('/spotify/search', authenticateToken, async (req: any, res) => {
     if (!query) return res.status(400).json({ error: 'Missing query parameter' });
 
     const token = await getSpotifyAccessToken();
-    const response = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=20`, {
+    const response = await axios.get(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     
