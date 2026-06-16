@@ -940,7 +940,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final msg = messages[index];
-                      final isMine = msg['senderId'] == _myUserId;
+                      final isMine = msg['senderId'] == _myUserId || msg['sender']?['id'] == _myUserId;
                       final sender = msg['sender'];
                       final senderUsername = sender?['username'] ?? 'User';
 

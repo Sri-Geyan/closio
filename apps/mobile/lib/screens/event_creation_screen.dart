@@ -145,7 +145,9 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
         });
       }
     } catch (e) {
-      print(e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate plan: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isPlanning = false);
     }
@@ -318,7 +320,7 @@ class _EventCreationScreenState extends State<EventCreationScreen> {
                         label: Text(rsvp),
                         selected: _selectedRsvp == rsvp,
                         selectedColor: rsvp == 'Going' ? ClosioTheme.primaryColor : (rsvp == 'Maybe' ? Colors.orange : ClosioTheme.errorColor),
-                        labelStyle: TextStyle(color: _selectedRsvp == rsvp ? Colors.white : Colors.black),
+                        labelStyle: TextStyle(color: _selectedRsvp == rsvp ? Colors.white : Colors.white70, fontWeight: FontWeight.w900),
                         onSelected: (selected) {
                           if (selected) setState(() => _selectedRsvp = rsvp);
                         },

@@ -282,17 +282,17 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 ElevatedButton(
                   onPressed: () => _updateRsvp('Going'),
                   style: ElevatedButton.styleFrom(backgroundColor: ClosioTheme.primaryColor),
-                  child: const Text('Going'),
+                  child: const Text('Going', style: TextStyle(fontWeight: FontWeight.w900)),
                 ),
                 ElevatedButton(
                   onPressed: () => _updateRsvp('Maybe'),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                  child: const Text('Maybe'),
+                  child: const Text('Maybe', style: TextStyle(fontWeight: FontWeight.w900)),
                 ),
                 ElevatedButton(
                   onPressed: () => _updateRsvp("Can't go"),
                   style: ElevatedButton.styleFrom(backgroundColor: ClosioTheme.errorColor),
-                  child: const Text("Can't go"),
+                  child: const Text("Can't go", style: TextStyle(fontWeight: FontWeight.w900)),
                 ),
               ],
             ),

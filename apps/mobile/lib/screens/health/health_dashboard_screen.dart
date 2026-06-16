@@ -48,7 +48,7 @@ class _HealthDashboardScreenState extends State<HealthDashboardScreen> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Health permissions not granted.')),
+          const SnackBar(content: Text('Health permissions not granted. Please ensure Health Connect is installed and permissions are enabled.')),
         );
       }
     }

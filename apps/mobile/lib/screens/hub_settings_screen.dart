@@ -76,44 +76,7 @@ class _HubSettingsScreenState extends State<HubSettingsScreen> {
     }
   }
 
-  Future<void> _addMember() async {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Member'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Enter exact username'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              final username = controller.text.trim();
-              if (username.isNotEmpty) {
-                Navigator.pop(context);
-                setState(() => _isLoading = true);
-                try {
-                  await ApiService.addHubMember(widget.hubId, username);
-                  _fetchMembers();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member added!')));
-                  }
-                } catch (e) {
-                  setState(() => _isLoading = false);
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                  }
-                }
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Future<void> _shareInviteLink() async {
     setState(() => _isLoading = true);
@@ -145,10 +108,6 @@ class _HubSettingsScreenState extends State<HubSettingsScreen> {
             icon: const Icon(Icons.share, color: ClosioTheme.primaryColor),
             onPressed: _shareInviteLink,
           ),
-          IconButton(
-            icon: const Icon(Icons.person_add, color: ClosioTheme.primaryColor),
-            onPressed: _addMember,
-          ),
         ],
       ),
       body: _isLoading 
@@ -158,10 +117,13 @@ class _HubSettingsScreenState extends State<HubSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 48,
-                  backgroundColor: ClosioTheme.surfaceContainer,
-                  child: Icon(Icons.groups, size: 48, color: ClosioTheme.secondaryColor),
+                  backgroundColor: ClosioTheme.surfaceContainerLow,
+                  child: Text(
+                    widget.hubName.isNotEmpty ? widget.hubName.substring(0, 1).toUpperCase() : 'H',
+                    style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: ClosioTheme.onSurfaceColor),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Text(

@@ -7,6 +7,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'components/glass_container.dart';
 import '../utils/marker_generator.dart';
 import '../services/api_service.dart';
+import '../theme.dart';
 
 class ContextNodesScreen extends StatefulWidget {
   const ContextNodesScreen({super.key});
@@ -92,8 +93,10 @@ class _ContextNodesScreenState extends State<ContextNodesScreen> {
       final userId = loc['userId'];
       final avatarUrl = loc['user']['avatarUrl'];
       if (!_userPinsCache.containsKey(userId)) {
+        final username = loc['user']['username'] ?? 'User';
         final icon = await MarkerGenerator.createCustomMarker(
-          avatarUrl ?? 'https://api.dicebear.com/7.x/avataaars/png?seed=$userId'
+          avatarUrl ?? '',
+          username
         );
         _userPinsCache[userId] = icon;
       }
@@ -102,7 +105,7 @@ class _ContextNodesScreenState extends State<ContextNodesScreen> {
 
   Future<void> _initCustomMarker() async {
     // We mock the user's profile picture for now using an online placeholder
-    final icon = await MarkerGenerator.createCustomMarker('https://api.dicebear.com/7.x/avataaars/png?seed=Felix');
+    final icon = await MarkerGenerator.createCustomMarker('', 'Me');
     if (mounted) {
       setState(() {
         _customIcon = icon;
@@ -292,15 +295,58 @@ class _ContextNodesScreenState extends State<ContextNodesScreen> {
             ),
           ),
           
-          // Share FAB
+          // Share Location Bottom Bar
           Positioned(
-            bottom: 30,
-            right: 20,
-            child: FloatingActionButton.extended(
-              onPressed: _toggleSharing,
-              backgroundColor: _isSharing ? Colors.red : ClosioTheme.primaryColor,
-              icon: Icon(_isSharing ? Icons.location_off : Icons.location_on),
-              label: Text(_isSharing ? 'Stop Sharing' : 'Share Location'),
+            bottom: 120,
+            left: 24,
+            right: 24,
+            child: GlassContainer(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              borderRadius: 30,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _isSharing ? Colors.red.withOpacity(0.2) : ClosioTheme.primaryColor.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _isSharing ? Icons.location_on : Icons.my_location,
+                          color: _isSharing ? Colors.red : ClosioTheme.primaryColor,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _isSharing ? 'Sharing Location' : 'Live Tracking',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                          ),
+                          Text(
+                            _isSharing ? 'Visible to all Hubs' : 'Off',
+                            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  ElevatedButton(
+                    onPressed: _toggleSharing,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isSharing ? Colors.red : ClosioTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    child: Text(_isSharing ? 'Stop' : 'Share', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
             ),
           )
         ],

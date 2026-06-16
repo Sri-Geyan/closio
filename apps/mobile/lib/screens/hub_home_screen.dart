@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'chat_screen.dart';
 import 'hub_settings_screen.dart';
 import 'hub_calendar_tab.dart';
 import 'hub_splits_tab.dart';
 import 'jukebox_screen.dart';
 import 'zomato_auth_screen.dart';
+import 'video_call_screen.dart';
 
 class HubHomeScreen extends StatefulWidget {
   final String hubId;
@@ -41,6 +43,19 @@ class _HubHomeScreenState extends State<HubHomeScreen> with SingleTickerProvider
         elevation: 0,
         title: Text(widget.hubName, style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.video_call), 
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => VideoCallScreen(
+                    roomId: widget.hubId,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.music_note_rounded), 
             onPressed: () {

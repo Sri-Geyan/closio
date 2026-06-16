@@ -13,12 +13,7 @@ class GamingAccountsScreen extends StatefulWidget {
 
 class _GamingAccountsScreenState extends State<GamingAccountsScreen> {
   final Map<String, String?> _accounts = {
-    'steam': null,
     'discord': null,
-    'xbox': null,
-    'psn': null,
-    'epic': null,
-    'riot': null,
   };
   bool _isLoading = true;
   String _privacy = 'ALL';
@@ -35,12 +30,7 @@ class _GamingAccountsScreenState extends State<GamingAccountsScreen> {
       final user = await ApiService.getUserProfile();
       if (user != null) {
         setState(() {
-          _accounts['steam'] = user['gamingSteam'];
           _accounts['discord'] = user['gamingDiscord'];
-          _accounts['xbox'] = user['gamingXbox'];
-          _accounts['psn'] = user['gamingPsn'];
-          _accounts['epic'] = user['gamingEpic'];
-          _accounts['riot'] = user['gamingRiot'];
           _privacy = user['gamingPrivacy'] ?? 'ALL';
           _appearOffline = user['gamingAppearOffline'] ?? false;
           _isLoading = false;
@@ -55,25 +45,15 @@ class _GamingAccountsScreenState extends State<GamingAccountsScreen> {
     if (platform == 'discord') {
       final userId = Supabase.instance.client.auth.currentUser!.id;
       final url = Uri.parse('${ApiService.backendUrl}/gaming/discord/auth?userId=$userId');
-      if (await canLaunchUrl(url)) {
+      try {
         await launchUrl(url, mode: LaunchMode.externalApplication);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open Discord')));
+        }
       }
       // Provide a dialog telling them to refresh after authorizing
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Connect Discord'),
-            content: const Text('Please complete the authorization in your browser, then tap Refresh.'),
-            actions: [
-              TextButton(onPressed: () {
-                Navigator.pop(ctx);
-                _fetchUserAccounts();
-              }, child: const Text('Refresh'))
-            ]
-          )
-        );
-      }
+      // Removed as per user request
       return;
     }
 

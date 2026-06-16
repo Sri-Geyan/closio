@@ -11,7 +11,7 @@ class ZomatoService {
 
     const transport = new StdioClientTransport({
       command: 'npx',
-      args: ['-y', 'mcp-remote', 'https://mcp-server.zomato.com/mcp']
+      args: ['-y', 'github:Zomato/mcp-server-manifest']
     });
 
     const client = new Client(

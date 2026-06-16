@@ -18,9 +18,9 @@ router.post('/summarise', authenticateToken, async (req, res) => {
 
 router.post('/plan-event', authenticateToken, async (req, res) => {
   try {
-    const { event_type, group_size, location, budget } = req.body;
+    const { eventType, groupSize, location, budget } = req.body;
     const response = await axios.post(`${AI_LAYER_URL}/plan-event`, {
-      event_type, group_size, location, budget
+      event_type: eventType, group_size: groupSize, location, budget
     });
     res.json(response.data);
   } catch (error) {

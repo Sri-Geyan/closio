@@ -26,7 +26,7 @@ class _ZomatoAuthScreenState extends State<ZomatoAuthScreen> {
           _stateId = res['state_id'];
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send code.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['error'] ?? 'Failed to send code.')));
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
@@ -44,7 +44,7 @@ class _ZomatoAuthScreenState extends State<ZomatoAuthScreen> {
           MaterialPageRoute(builder: (context) => ZomatoSearchScreen()),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid code.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['error'] ?? 'Invalid code.')));
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));

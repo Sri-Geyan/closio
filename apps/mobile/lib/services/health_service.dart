@@ -27,10 +27,12 @@ class HealthService {
       HealthDataType.DISTANCE_DELTA,
     ];
 
+    final permissions = types.map((e) => HealthDataAccess.READ).toList();
+
     try {
-      final hasPermissions = await _health.hasPermissions(types) ?? false;
+      final hasPermissions = await _health.hasPermissions(types, permissions: permissions) ?? false;
       if (!hasPermissions) {
-        final granted = await _health.requestAuthorization(types);
+        final granted = await _health.requestAuthorization(types, permissions: permissions);
         if (granted) {
           _isOptedIn = true;
           final prefs = await SharedPreferences.getInstance();

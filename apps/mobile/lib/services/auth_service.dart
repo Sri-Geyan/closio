@@ -14,9 +14,7 @@ class AuthService {
     const String envUrl = String.fromEnvironment('API_URL');
     if (envUrl.isNotEmpty) return envUrl;
 
-    if (kIsWeb) return 'http://localhost:3000';
-    if (Platform.isAndroid) return 'http://10.0.2.2:3000';
-    return 'http://localhost:3000';
+    return 'https://closio.onrender.com';
   }
 
   static Future<void> signInWithGoogle() async {

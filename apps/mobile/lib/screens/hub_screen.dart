@@ -60,6 +60,42 @@ class _HubScreenState extends State<HubScreen> {
     );
   }
 
+  void _showJoinHubDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Join Hub'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: 'Invite Link or Hub ID'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final id = controller.text.trim();
+                if (id.isNotEmpty) {
+                  Navigator.pop(context);
+                  // For MVP, assume the id is the hubId
+                  await ApiService.joinHubByInviteCode(id);
+                  if (mounted) {
+                    context.read<AppStateProvider>().fetchHubs(forceRefresh: true);
+                  }
+                }
+              },
+              child: const Text('Join'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppStateProvider>();
@@ -188,10 +224,25 @@ class _HubScreenState extends State<HubScreen> {
           ),
           floatingActionButton: Padding(
             padding: const EdgeInsets.only(bottom: 90.0),
-            child: FloatingActionButton(
-              onPressed: _showCreateHubDialog,
-              backgroundColor: ClosioTheme.primaryColor,
-              child: const Icon(Icons.add, color: ClosioTheme.onPrimaryColor),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton.extended(
+                  heroTag: 'join',
+                  onPressed: _showJoinHubDialog,
+                  backgroundColor: ClosioTheme.surfaceContainerLow,
+                  icon: const Icon(Icons.link, color: Colors.white),
+                  label: const Text('Join', style: TextStyle(color: Colors.white)),
+                ),
+                const SizedBox(height: 16),
+                FloatingActionButton.extended(
+                  heroTag: 'create',
+                  onPressed: _showCreateHubDialog,
+                  backgroundColor: ClosioTheme.primaryColor,
+                  icon: const Icon(Icons.add, color: ClosioTheme.onPrimaryColor),
+                  label: const Text('Create', style: TextStyle(color: ClosioTheme.onPrimaryColor)),
+                ),
+              ],
             ),
           ),
           body: isTablet

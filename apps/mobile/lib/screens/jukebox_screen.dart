@@ -6,7 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../theme.dart';
 import '../services/api_service.dart';
-import '../services/itunes_service.dart';
+import '../services/spotify_search_service.dart';
+import 'package:spotify_sdk/spotify_sdk.dart';
 
 class JukeboxScreen extends StatefulWidget {
   final String hubId;
@@ -60,12 +61,22 @@ class _JukeboxScreenState extends State<JukeboxScreen> {
       _socket?.emit('join_hub', widget.hubId);
     });
 
-    _socket?.on('jukebox_track_added', (data) {
+    _socket?.on('jukebox_track_added', (data) async {
       if (mounted) {
         setState(() {
           _tracks.add(data);
           _sortTracks();
         });
+        
+        try {
+          if (_tracks.length == 1) {
+            await SpotifySdk.play(spotifyUri: data['spotifyUrl']);
+          } else {
+            await SpotifySdk.queue(spotifyUri: data['spotifyUrl']);
+          }
+        } catch (e) {
+          debugPrint('Spotify play/queue error: $e');
+        }
       }
     });
 
@@ -109,10 +120,21 @@ class _JukeboxScreenState extends State<JukeboxScreen> {
       setState(() {
         _session = session;
         _tracks = [];
-        _isLoading = false;
       });
+
+      // Connect to Spotify Remote and queue songs in-app
+      try {
+        await SpotifySdk.connectToSpotifyRemote(
+          clientId: '166979b34ea1475fb26bc7bb6a342871',
+          redirectUrl: 'closio://spotify-callback',
+        );
+      } catch (e) {
+        debugPrint('Error connecting to Spotify SDK: $e');
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -135,11 +157,10 @@ class _JukeboxScreenState extends State<JukeboxScreen> {
 
   Future<void> _openSpotify(String? url) async {
     if (url == null || url.isEmpty) return;
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open Spotify')));
+    try {
+      await SpotifySdk.play(spotifyUri: url);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not play in Spotify. Is it installed?')));
     }
   }
 
@@ -353,7 +374,7 @@ class _AddSongSheetState extends State<AddSongSheet> {
     final q = _searchController.text.trim();
     if (q.isEmpty) return;
     setState(() => _isSearching = true);
-    final results = await ItunesService.searchSongs(q);
+    final results = await SpotifySearchService.searchSongs(q);
     setState(() {
       _results = results;
       _isSearching = false;

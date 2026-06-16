@@ -6,9 +6,11 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class MarkerGenerator {
-  static Future<BitmapDescriptor> createCustomMarker(String imageUrl) async {
-    final int size = 120;
+  static Future<BitmapDescriptor> createCustomMarker(String imageUrl, String username) async {
+    final int width = 300;
+    final int height = 350;
     final int avatarSize = 100;
+    final int pinRadius = 40;
     
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
@@ -16,54 +18,81 @@ class MarkerGenerator {
       ..color = Colors.black
       ..style = PaintingStyle.fill;
 
-    final double radius = size / 2;
+    // Draw rounded rectangle for username tag
+    final RRect rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, width.toDouble(), 160),
+      const Radius.circular(20)
+    );
+    canvas.drawRRect(rrect, paint);
 
     // Draw the black pin (a circle with a triangle pointing down)
-    canvas.drawCircle(Offset(radius, radius), radius, paint);
+    final double pinCenterX = width / 2;
+    final double pinCenterY = 200;
     
-    // Draw triangle pointing down
+    canvas.drawCircle(Offset(pinCenterX, pinCenterY), pinRadius.toDouble(), paint);
+    
+    // Draw triangle pointing down for the pin
     final Path path = Path();
-    path.moveTo(radius - 20, size.toDouble() - 20); // slightly above bottom of circle
-    path.lineTo(radius, size.toDouble() + 25);      // point of the pin
-    path.lineTo(radius + 20, size.toDouble() - 20);
+    path.moveTo(pinCenterX - 15, pinCenterY + 10);
+    path.lineTo(pinCenterX, pinCenterY + 70);
+    path.lineTo(pinCenterX + 15, pinCenterY + 10);
     path.close();
     canvas.drawPath(path, paint);
 
-    // Draw profile picture
-    try {
-      final response = await http.get(Uri.parse(imageUrl));
-      if (response.statusCode == 200) {
-        final Uint8List imageBytes = response.bodyBytes;
-        
-        final ui.Codec codec = await ui.instantiateImageCodec(imageBytes, targetWidth: avatarSize, targetHeight: avatarSize);
-        final ui.FrameInfo frameInfo = await codec.getNextFrame();
-        final ui.Image image = frameInfo.image;
+    // Draw profile picture inside the rounded rectangle
+    bool imageDrawn = false;
+    final double avatarCenterX = width / 2;
+    final double avatarCenterY = 60;
+    
+    if (imageUrl.isNotEmpty) {
+      try {
+        final response = await http.get(Uri.parse(imageUrl));
+        if (response.statusCode == 200) {
+          final Uint8List imageBytes = response.bodyBytes;
+          
+          final ui.Codec codec = await ui.instantiateImageCodec(imageBytes, targetWidth: avatarSize, targetHeight: avatarSize);
+          final ui.FrameInfo frameInfo = await codec.getNextFrame();
+          final ui.Image image = frameInfo.image;
 
-        canvas.save();
-        final Path clipPath = Path()..addOval(Rect.fromCircle(center: Offset(radius, radius), radius: avatarSize / 2));
-        canvas.clipPath(clipPath);
-        canvas.drawImage(image, Offset(radius - avatarSize / 2, radius - avatarSize / 2), Paint());
-        canvas.restore();
-      } else {
-        throw Exception('Failed to load image');
-      }
-    } catch (e) {
-      // If image fails, draw a white circle inside with a fallback icon/text
+          canvas.save();
+          final Path clipPath = Path()..addOval(Rect.fromCircle(center: Offset(avatarCenterX, avatarCenterY), radius: avatarSize / 2));
+          canvas.clipPath(clipPath);
+          canvas.drawImage(image, Offset(avatarCenterX - avatarSize / 2, avatarCenterY - avatarSize / 2), Paint());
+          canvas.restore();
+          imageDrawn = true;
+        }
+      } catch (_) {}
+    }
+
+    // Fallback if no image
+    if (!imageDrawn) {
       paint.color = Colors.white;
-      canvas.drawCircle(Offset(radius, radius), avatarSize / 2, paint);
+      canvas.drawCircle(Offset(avatarCenterX, avatarCenterY), avatarSize / 2, paint);
       
+      final String fallbackLetter = username.isNotEmpty ? username[0].toUpperCase() : 'U';
       final textPainter = TextPainter(
-        text: const TextSpan(
-          text: 'U', 
-          style: TextStyle(color: Colors.black, fontSize: 40, fontWeight: FontWeight.bold)
+        text: TextSpan(
+          text: fallbackLetter, 
+          style: const TextStyle(color: Colors.black, fontSize: 40, fontWeight: FontWeight.bold)
         ),
         textDirection: TextDirection.ltr,
       );
       textPainter.layout();
-      textPainter.paint(canvas, Offset(radius - textPainter.width / 2, radius - textPainter.height / 2));
+      textPainter.paint(canvas, Offset(avatarCenterX - textPainter.width / 2, avatarCenterY - textPainter.height / 2));
     }
 
-    final ui.Image markerAsImage = await pictureRecorder.endRecording().toImage(size, size + 30);
+    // Draw Username text below the avatar, inside the rounded rect
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: username, 
+        style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w600)
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout(maxWidth: width.toDouble() - 40);
+    textPainter.paint(canvas, Offset(pinCenterX - textPainter.width / 2, 120));
+
+    final ui.Image markerAsImage = await pictureRecorder.endRecording().toImage(width, height);
     final ByteData? byteData = await markerAsImage.toByteData(format: ui.ImageByteFormat.png);
     final Uint8List uint8List = byteData!.buffer.asUint8List();
 

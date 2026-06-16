@@ -9,9 +9,7 @@ class ApiService {
     const String envUrl = String.fromEnvironment('API_URL');
     if (envUrl.isNotEmpty) return envUrl;
     
-    if (kIsWeb) return 'http://localhost:3000';
-    if (Platform.isAndroid) return 'http://10.0.2.2:3000';
-    return 'http://localhost:3000';
+    return 'https://closio.onrender.com';
   }
   static final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -249,6 +247,21 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to create split');
+    }
+  }
+
+  // --- Jukebox API ---
+  static Future<Map<String, dynamic>> createSpotifyPlaylist(String hubId, String mood, List<String> trackUris) async {
+    final response = await http.post(
+      Uri.parse('$backendUrl/jukebox/$hubId/spotify/create-playlist'),
+      headers: await _getHeaders(),
+      body: jsonEncode({'mood': mood, 'tracks': trackUris}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to create Spotify playlist');
     }
   }
 

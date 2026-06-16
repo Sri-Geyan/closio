@@ -36,7 +36,7 @@ class _MainLayoutState extends State<MainLayout> {
     });
     
     try {
-      final initialUri = await _appLinks.getInitialLink();
+      final initialUri = await _appLinks.getInitialAppLink();
       if (initialUri != null) {
         _handleDeepLink(initialUri);
       }
@@ -111,7 +111,7 @@ class _MainLayoutState extends State<MainLayout> {
           PageView(
             controller: _pageController,
             onPageChanged: _onPageChanged,
-            physics: const ClampingScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             children: _screens,
           ),
           Positioned(
